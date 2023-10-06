@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 import stripe
-from .models import Order
+from orders.models import Order
 
 
 def payment_process(request):

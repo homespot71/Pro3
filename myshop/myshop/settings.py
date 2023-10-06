@@ -115,6 +115,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = "static/"
+STATICFILES_DIRS = ["shop/static"]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -131,3 +132,4 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 STRIPE_PUBLISHABLE_KEY = ''  # Публикуемый ключ
 STRIPE_SECRET_KEY = ''  # Секретный ключ
 STRIPE_API_VERSION = '2022-08-01'
+STRIPE_WEBHOOK_SECRET = ''

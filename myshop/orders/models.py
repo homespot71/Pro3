@@ -1,5 +1,7 @@
 from django.db import models
 from shop.models import Product
+#from myshop.myshop import settings
+from django.conf import settings
 
 
 class Order(models.Model):
@@ -12,6 +14,7 @@ class Order(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     paid = models.BooleanField(default=False)
+    stripe_id = models.CharField(max_length=250, blank=True)
 
     class Meta:
         ordering = ['-created']
@@ -26,7 +29,29 @@ class Order(models.Model):
     def get_total_cost(self):
         return sum(item.get_cost() for item in self.items.all())
 
+    def get_stripe_url(self):
+        if not self.stripe_id:
+            # никаких ассоциированных платежей
+            return ''
+        if '_test_' in settings.STRIPE_SECRET_KEY:
+            # путь Stripe для тестовых платежей
+            path = '/test/'
+        else:
+            # путь Stripe для настоящих платежей
+            path = '/'
+        return f'https://dashboard.stripe.com{path}payments/{self.stripe_id}'
 
+"""
+Здесь в модель Order был добавлен новый метод get_stripe_url(). Этот ме-
+тод используется для возврата URL-адреса информационной панели Stripe
+для платежа, связанного с заказом. Если ИД платежа не хранится в поле
+stripe_id объекта Order, то возвращается пустая строка. В противном случае
+возвращается URL-адрес платежа в информационной панели Stripe. Далее
+проверяется наличие подстроки _test_ в настроечном параметре STRIPE_SECRET_
+KEY, чтобы отличить производственную среду от тестовой. Платежи
+в производственной среде подчиняются шаблону https://dashboard.stripe.
+com/payments/{id}, тогда как тестовые платежи следуют шаблону https://dashboard.
+stripe.com/payments/test/{id}."""
 class OrderItem(models.Model):
     order = models.ForeignKey(Order,
                               related_name='items',
@@ -39,12 +64,11 @@ class OrderItem(models.Model):
     quantity = models.PositiveIntegerField(default=1)
 
     def __str__(self):
-
         return str(self.id)
 
     def get_cost(self):
-
         return self.price * self.quantity
+
 
 """
 Модель Order содержит несколько полей для хранения информации о кли-

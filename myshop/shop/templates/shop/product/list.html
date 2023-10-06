@@ -13,6 +13,7 @@
 {#настроечные параметры:#}
 {#MEDIA_URL = 'media/'#}
 {#MEDIA_ROOT = BASE_DIR / 'media'#}
+{% load static %}
 
 {% block title %}
     {% if category %}{{ category.name }}{% else %}Products{% endif %}

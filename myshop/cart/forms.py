@@ -1,4 +1,5 @@
 from django import forms
+from django.utils.translation import gettext_lazy as _
 
 PRODUCT_QUANTITY_CHOICES = [(i, str(i)) for i in range(1, 21)]
 
@@ -6,10 +7,14 @@ PRODUCT_QUANTITY_CHOICES = [(i, str(i)) for i in range(1, 21)]
 class CartAddProductForm(forms.Form):
     quantity = forms.TypedChoiceField(
         choices=PRODUCT_QUANTITY_CHOICES,
-        coerce=int)
+        coerce=int,
+        label=_('Quantity')
+    )
     override = forms.BooleanField(required=False,
                                   initial=False,
                                   widget=forms.HiddenInput)
+
+
 """
 Эта форма будет использоваться для добавления товаров в корзину. Ваш
 класс CartAddProductForm содержит следующие два поля:
@@ -21,4 +26,3 @@ TypedChoiceField вместе с coerce=int;
 (False) или же существующее количество должно быть переопределено
 данным количеством (True). Для этого поля используется виджет HiddenInput,
 так как это поле не будет показываться пользователю."""
-

@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 import stripe
+from decimal import Decimal  # Добавим импорт Decimal для работы с десятичными числами
 from orders.models import Order
-
 
 def payment_process(request):
     order_id = request.session.get('order_id', None)
@@ -20,12 +20,13 @@ def payment_process(request):
             'cancel_url': cancel_url,
             'line_items': []
         }
-        # добавить товарные позиции заказа
-        # в сеанс оформления платежа Stripe
+
+        # Добавить товарные позиции заказа в сеанс оформления платежа Stripe
         for item in order.items.all():
+            unit_amount = int(item.price * Decimal('100'))  # Преобразуем цену в целое число в копейках
             session_data['line_items'].append({
                 'price_data': {
-                    'unit_amount': int(item.price * Decimal('100')),
+                    'unit_amount': unit_amount,
                     'currency': 'usd',
                     'product_data': {
                         'name': item.product.name,
@@ -34,10 +35,20 @@ def payment_process(request):
                 'quantity': item.quantity,
             })
 
+        # Если есть скидочный купон, создаем его в Stripe
+        if order.coupon:
+            stripe_coupon = stripe.Coupon.create(
+                name=order.coupon.code,
+                percent_off=order.discount,
+                duration='once')
+            session_data['discounts'] = [{
+                'coupon': stripe_coupon.id
+            }]
+
         # Создать сеанс оформления платежа Stripe
         session = stripe.checkout.Session.create(**session_data)
 
-        # Перенаправить к платежной форме Stripe
+        # Перенаправить к форме для оплаты Stripe
         return redirect(session.url, code=303)
 
     else:
